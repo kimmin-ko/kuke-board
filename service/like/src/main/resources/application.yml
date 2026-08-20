@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: like
+
+server:
+  port: 9004

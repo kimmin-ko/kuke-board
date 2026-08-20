@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: hot-article
+
+server:
+  port: 9002

@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: comment
+
+server:
+  port: 9001
