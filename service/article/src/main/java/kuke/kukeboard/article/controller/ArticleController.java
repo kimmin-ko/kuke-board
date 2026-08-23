@@ -1,7 +1,5 @@
 package kuke.kukeboard.article.controller;
 
-import java.util.List;
-
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import kuke.kukeboard.article.service.ArticleService;
 import kuke.kukeboard.article.service.request.ArticleCreateRequest;
 import kuke.kukeboard.article.service.request.ArticleUpdateRequest;
+import kuke.kukeboard.article.service.response.ArticleInfiniteScrollResponse;
+import kuke.kukeboard.article.service.response.ArticlePageResponse;
 import kuke.kukeboard.article.service.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -35,7 +35,7 @@ public class ArticleController {
      * to an arbitrary page number, but cost grows with the page depth.
      */
     @GetMapping
-    public List<ArticleResponse> readAll(
+    public ArticlePageResponse readAll(
             @RequestParam Long boardId,
             @RequestParam Long page,
             @RequestParam Long pageSize
@@ -48,7 +48,7 @@ public class ArticleController {
      * regardless of how deep the caller has already scrolled.
      */
     @GetMapping("/infinite-scroll")
-    public List<ArticleResponse> readAllInfiniteScroll(
+    public ArticleInfiniteScrollResponse readAllInfiniteScroll(
             @RequestParam Long boardId,
             @RequestParam(required = false) Long lastArticleId,
             @RequestParam Long pageSize

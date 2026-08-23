@@ -12,6 +12,8 @@ import kuke.kukeboard.article.entity.Article;
 import kuke.kukeboard.article.repository.ArticleRepository;
 import kuke.kukeboard.article.service.request.ArticleCreateRequest;
 import kuke.kukeboard.article.service.request.ArticleUpdateRequest;
+import kuke.kukeboard.article.service.response.ArticleInfiniteScrollResponse;
+import kuke.kukeboard.article.service.response.ArticlePageResponse;
 import kuke.kukeboard.article.service.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -22,24 +24,32 @@ public class ArticleService {
     private final Snowflake snowflake = new Snowflake();
     private final ArticleRepository articleRepository;
 
-    public List<ArticleResponse> readAll(Long boardId, Long page, Long pageSize) {
+    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize) {
         Pageable pageable = PageRequest.of((int) (page - 1), pageSize.intValue());
         List<Long> articleIds = articleRepository.findIds(boardId, pageable);
-        if (articleIds.isEmpty()) {
-            return List.of();
-        }
-        return articleRepository.findAllByIds(articleIds)
-                .stream()
-                .map(ArticleResponse::from)
-                .toList();
+
+        List<ArticleResponse> articles = articleIds.isEmpty()
+                ? List.of()
+                : articleRepository.findAllByIds(articleIds).stream().map(ArticleResponse::from).toList();
+
+        boolean hasNext = !articles.isEmpty() && !articleRepository.findAllByCursor(
+                boardId, articles.get(articles.size() - 1).articleId(), PageRequest.of(0, 1)
+        ).isEmpty();
+
+        return new ArticlePageResponse(articles, page, pageSize, hasNext);
     }
 
-    public List<ArticleResponse> readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
-        Pageable pageable = PageRequest.of(0, pageSize.intValue());
-        return articleRepository.findAllByCursor(boardId, lastArticleId, pageable)
-                .stream()
-                .map(ArticleResponse::from)
-                .toList();
+    public ArticleInfiniteScrollResponse readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
+        Pageable pageable = PageRequest.of(0, pageSize.intValue() + 1);
+        List<Article> found = articleRepository.findAllByCursor(boardId, lastArticleId, pageable);
+
+        boolean hasNext = found.size() > pageSize;
+        List<Article> pageArticles = hasNext ? found.subList(0, pageSize.intValue()) : found;
+
+        List<ArticleResponse> articles = pageArticles.stream().map(ArticleResponse::from).toList();
+        Long nextCursor = articles.isEmpty() ? null : articles.get(articles.size() - 1).articleId();
+
+        return new ArticleInfiniteScrollResponse(articles, nextCursor, hasNext);
     }
 
     @Transactional
