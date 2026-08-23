@@ -50,4 +50,10 @@ public class Article {
         article.modifiedAt = now;
         return article;
     }
+
+    public void update(String title, String content) {
+        this.title = title;
+        this.content = content;
+        this.modifiedAt = LocalDateTime.now();
+    }
 }
