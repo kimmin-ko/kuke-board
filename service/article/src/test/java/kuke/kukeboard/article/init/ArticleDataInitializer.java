@@ -19,7 +19,11 @@ import kuke.board.common.snowflake.Snowflake;
  * Not part of the regular test suite — run explicitly via IDE or
  * {@code ./gradlew test --tests "*ArticleDataInitializer*"} after removing @Disabled.
  */
-@SpringBootTest
+@SpringBootTest(properties = {
+        "logging.level.root=WARN",
+        "spring.main.banner-mode=off",
+        "spring.datasource.hikari.maximum-pool-size=20"
+})
 class ArticleDataInitializer {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER =
