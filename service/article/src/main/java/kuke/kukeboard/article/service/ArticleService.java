@@ -1,5 +1,9 @@
 package kuke.kukeboard.article.service;
 
+import java.util.List;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +21,26 @@ public class ArticleService {
 
     private final Snowflake snowflake = new Snowflake();
     private final ArticleRepository articleRepository;
+
+    public List<ArticleResponse> readAll(Long boardId, Long page, Long pageSize) {
+        Pageable pageable = PageRequest.of((int) (page - 1), pageSize.intValue());
+        List<Long> articleIds = articleRepository.findIds(boardId, pageable);
+        if (articleIds.isEmpty()) {
+            return List.of();
+        }
+        return articleRepository.findAllByIds(articleIds)
+                .stream()
+                .map(ArticleResponse::from)
+                .toList();
+    }
+
+    public List<ArticleResponse> readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
+        Pageable pageable = PageRequest.of(0, pageSize.intValue());
+        return articleRepository.findAllByCursor(boardId, lastArticleId, pageable)
+                .stream()
+                .map(ArticleResponse::from)
+                .toList();
+    }
 
     @Transactional
     public ArticleResponse create(ArticleCreateRequest request) {

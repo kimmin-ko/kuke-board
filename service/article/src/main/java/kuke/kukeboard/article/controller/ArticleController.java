@@ -1,5 +1,7 @@
 package kuke.kukeboard.article.controller;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -7,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import kuke.kukeboard.article.service.ArticleService;
@@ -25,6 +28,32 @@ public class ArticleController {
     @PostMapping
     public ArticleResponse create(@RequestBody ArticleCreateRequest request) {
         return articleService.create(request);
+    }
+
+    /**
+     * Offset pagination via covering-index deferred join. Supports jumping
+     * to an arbitrary page number, but cost grows with the page depth.
+     */
+    @GetMapping
+    public List<ArticleResponse> readAll(
+            @RequestParam Long boardId,
+            @RequestParam Long page,
+            @RequestParam Long pageSize
+    ) {
+        return articleService.readAll(boardId, page, pageSize);
+    }
+
+    /**
+     * Cursor(keyset) pagination for infinite scroll. Cost is constant
+     * regardless of how deep the caller has already scrolled.
+     */
+    @GetMapping("/infinite-scroll")
+    public List<ArticleResponse> readAllInfiniteScroll(
+            @RequestParam Long boardId,
+            @RequestParam(required = false) Long lastArticleId,
+            @RequestParam Long pageSize
+    ) {
+        return articleService.readAllInfiniteScroll(boardId, lastArticleId, pageSize);
     }
 
     @GetMapping("/{articleId}")
