@@ -1,5 +1,6 @@
 rootProject.name = 'kuke-board'
 
+include 'common:snowflake'
 include 'service:article'
 include 'service:comment'
 include 'service:hot-article'

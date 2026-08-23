@@ -1,6 +1,11 @@
 spring:
   application:
     name: article
+  datasource:
+    url: jdbc:mysql://localhost:3306/article
+    username: root
+    password: rootpass
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
   port: 9000
