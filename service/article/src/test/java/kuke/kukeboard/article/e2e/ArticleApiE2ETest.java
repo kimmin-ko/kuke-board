@@ -26,6 +26,7 @@ class ArticleApiE2ETest {
     private ArticleRepository articleRepository;
 
     private RestTestClient client;
+    private Long createdArticleId;
 
     @BeforeEach
     void setUp() {
@@ -36,7 +37,9 @@ class ArticleApiE2ETest {
 
     @AfterEach
     void tearDown() {
-        articleRepository.deleteAll();
+        if (createdArticleId != null) {
+            articleRepository.findById(createdArticleId).ifPresent(articleRepository::delete);
+        }
     }
 
     @Test
@@ -57,6 +60,7 @@ class ArticleApiE2ETest {
         assertThat(created.boardId()).isEqualTo(1L);
         assertThat(created.writerId()).isEqualTo(1L);
         Long articleId = created.articleId();
+        this.createdArticleId = articleId;
 
         ArticleResponse read = client.get()
                 .uri("/v1/articles/{articleId}", articleId)

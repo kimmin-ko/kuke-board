@@ -30,7 +30,7 @@ class ArticleDataInitializer {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     private static final int BULK_INSERT_SIZE = 2000;
-    private static final int BOARD_COUNT = 1000;
+    private static final long FIXED_BOARD_ID = 1L;
     private static final long TOTAL_ROW_COUNT = 12_000_000L;
     private static final long EXECUTE_COUNT = TOTAL_ROW_COUNT / BULK_INSERT_SIZE;
     private static final int THREAD_COUNT = 20;
@@ -47,10 +47,9 @@ class ArticleDataInitializer {
         CountDownLatch latch = new CountDownLatch((int) EXECUTE_COUNT);
 
         for (long i = 0; i < EXECUTE_COUNT; i++) {
-            long boardId = (i % BOARD_COUNT) + 1;
             executorService.submit(() -> {
                 try {
-                    insertBulk(boardId);
+                    insertBulk(FIXED_BOARD_ID);
                 } finally {
                     latch.countDown();
                 }
