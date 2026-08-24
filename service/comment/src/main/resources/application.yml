@@ -1,6 +1,9 @@
 spring:
   application:
     name: comment
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 9001

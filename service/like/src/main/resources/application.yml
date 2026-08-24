@@ -1,6 +1,9 @@
 spring:
   application:
     name: like
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 9004

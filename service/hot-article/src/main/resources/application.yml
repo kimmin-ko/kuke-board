@@ -1,6 +1,9 @@
 spring:
   application:
     name: hot-article
+  threads:
+    virtual:
+      enabled: true
 
 server:
   port: 9002
