@@ -7,13 +7,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import kuke.board.common.pagination.CursorResponse;
+import kuke.board.common.pagination.PageLimitCalculator;
+import kuke.board.common.pagination.PageResponse;
 import kuke.board.common.snowflake.Snowflake;
 import kuke.kukeboard.article.entity.Article;
 import kuke.kukeboard.article.repository.ArticleRepository;
 import kuke.kukeboard.article.service.request.ArticleCreateRequest;
 import kuke.kukeboard.article.service.request.ArticleUpdateRequest;
-import kuke.kukeboard.article.service.response.ArticleInfiniteScrollResponse;
-import kuke.kukeboard.article.service.response.ArticlePageResponse;
 import kuke.kukeboard.article.service.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -31,15 +32,14 @@ public class ArticleService {
      * whether a next block exists) -- cost depends on block position, not
      * on total table size.
      */
-    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize, Long pageLimit) {
-        long blockIndex = (page - 1) / pageLimit;
-        long limit = (blockIndex + 1) * pageSize * pageLimit + 1;
+    public PageResponse<ArticleResponse> readAll(Long boardId, Long page, Long pageSize, Long pageLimit) {
+        long limit = PageLimitCalculator.calculateLimit(page, pageSize, pageLimit);
 
         List<Long> boundedIds = articleRepository.findIds(boardId, PageRequest.of(0, (int) limit));
         long available = boundedIds.size();
 
         boolean hasNext = available == limit;
-        long lastPage = hasNext ? (blockIndex + 1) * pageLimit : ceilDiv(available, pageSize);
+        long lastPage = PageLimitCalculator.calculateLastPage(page, pageSize, pageLimit, available);
 
         long start = (page - 1) * pageSize;
         List<Long> pageIds = start >= available
@@ -50,14 +50,10 @@ public class ArticleService {
                 ? List.of()
                 : articleRepository.findAllByIds(pageIds).stream().map(ArticleResponse::from).toList();
 
-        return new ArticlePageResponse(articles, page, pageSize, pageLimit, lastPage, hasNext);
+        return new PageResponse<>(articles, page, pageSize, pageLimit, lastPage, hasNext);
     }
 
-    private static long ceilDiv(long dividend, long divisor) {
-        return (dividend + divisor - 1) / divisor;
-    }
-
-    public ArticleInfiniteScrollResponse readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
+    public CursorResponse<ArticleResponse> readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
         Pageable pageable = PageRequest.of(0, pageSize.intValue() + 1);
         List<Article> found = articleRepository.findAllByCursor(boardId, lastArticleId, pageable);
 
@@ -67,7 +63,7 @@ public class ArticleService {
         List<ArticleResponse> articles = pageArticles.stream().map(ArticleResponse::from).toList();
         Long nextCursor = articles.isEmpty() ? null : articles.getLast().articleId();
 
-        return new ArticleInfiniteScrollResponse(articles, nextCursor, hasNext);
+        return new CursorResponse<>(articles, nextCursor, hasNext);
     }
 
     @Transactional

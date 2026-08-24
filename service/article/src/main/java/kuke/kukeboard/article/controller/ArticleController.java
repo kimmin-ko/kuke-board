@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import kuke.board.common.pagination.CursorResponse;
+import kuke.board.common.pagination.PageResponse;
 import kuke.kukeboard.article.service.ArticleService;
 import kuke.kukeboard.article.service.request.ArticleCreateRequest;
 import kuke.kukeboard.article.service.request.ArticleUpdateRequest;
-import kuke.kukeboard.article.service.response.ArticleInfiniteScrollResponse;
-import kuke.kukeboard.article.service.response.ArticlePageResponse;
 import kuke.kukeboard.article.service.response.ArticleResponse;
 import lombok.RequiredArgsConstructor;
 
@@ -37,7 +37,7 @@ public class ArticleController {
      * "[1][2]...[10][다음]" style page bar without a full COUNT(*).
      */
     @GetMapping
-    public ArticlePageResponse readAll(
+    public PageResponse<ArticleResponse> readAll(
             @RequestParam Long boardId,
             @RequestParam Long page,
             @RequestParam Long pageSize,
@@ -51,7 +51,7 @@ public class ArticleController {
      * regardless of how deep the caller has already scrolled.
      */
     @GetMapping("/infinite-scroll")
-    public ArticleInfiniteScrollResponse readAllInfiniteScroll(
+    public CursorResponse<ArticleResponse> readAllInfiniteScroll(
             @RequestParam Long boardId,
             @RequestParam(required = false) Long lastArticleId,
             @RequestParam Long pageSize
