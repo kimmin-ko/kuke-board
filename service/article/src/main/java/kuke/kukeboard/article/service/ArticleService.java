@@ -40,11 +40,7 @@ public class ArticleService {
 
         boolean hasNext = available == limit;
         long lastPage = PageLimitCalculator.calculateLastPage(page, pageSize, pageLimit, available);
-
-        long start = (page - 1) * pageSize;
-        List<Long> pageIds = start >= available
-                ? List.of()
-                : boundedIds.subList((int) start, (int) Math.min(start + pageSize, available));
+        List<Long> pageIds = PageLimitCalculator.sliceForPage(boundedIds, page, pageSize);
 
         List<ArticleResponse> articles = pageIds.isEmpty()
                 ? List.of()

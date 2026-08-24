@@ -2,6 +2,8 @@ package kuke.board.common.pagination;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 class PageLimitCalculatorTest {
@@ -38,5 +40,21 @@ class PageLimitCalculatorTest {
         long lastPage = PageLimitCalculator.calculateLastPage(1, 30, 10, 0);
 
         assertThat(lastPage).isEqualTo(0);
+    }
+
+    @Test
+    void sliceForPageReturnsThePageWindow() {
+        List<Integer> bounded = List.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+        assertThat(PageLimitCalculator.sliceForPage(bounded, 1, 3)).containsExactly(0, 1, 2);
+        assertThat(PageLimitCalculator.sliceForPage(bounded, 2, 3)).containsExactly(3, 4, 5);
+        assertThat(PageLimitCalculator.sliceForPage(bounded, 4, 3)).containsExactly(9);
+    }
+
+    @Test
+    void sliceForPageReturnsEmptyPastTheEnd() {
+        List<Integer> bounded = List.of(0, 1, 2);
+
+        assertThat(PageLimitCalculator.sliceForPage(bounded, 2, 3)).isEmpty();
     }
 }
