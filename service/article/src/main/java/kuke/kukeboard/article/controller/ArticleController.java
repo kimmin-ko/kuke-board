@@ -31,16 +31,19 @@ public class ArticleController {
     }
 
     /**
-     * Offset pagination via covering-index deferred join. Supports jumping
-     * to an arbitrary page number, but cost grows with the page depth.
+     * Page-number-block pagination. Supports jumping to an arbitrary page
+     * and tells the caller the last real page number within the current
+     * block of {@code pageLimit} page numbers, so FE can render a
+     * "[1][2]...[10][다음]" style page bar without a full COUNT(*).
      */
     @GetMapping
     public ArticlePageResponse readAll(
             @RequestParam Long boardId,
             @RequestParam Long page,
-            @RequestParam Long pageSize
+            @RequestParam Long pageSize,
+            @RequestParam(defaultValue = "10") Long pageLimit
     ) {
-        return articleService.readAll(boardId, page, pageSize);
+        return articleService.readAll(boardId, page, pageSize, pageLimit);
     }
 
     /**

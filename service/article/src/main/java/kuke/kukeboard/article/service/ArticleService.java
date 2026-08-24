@@ -24,19 +24,37 @@ public class ArticleService {
     private final Snowflake snowflake = new Snowflake();
     private final ArticleRepository articleRepository;
 
-    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize) {
-        Pageable pageable = PageRequest.of((int) (page - 1), pageSize.intValue());
-        List<Long> articleIds = articleRepository.findIds(boardId, pageable);
+    /**
+     * Page-number-block pagination: instead of a full COUNT(*), bounds the
+     * covering-index scan to exactly what's needed to know the last real
+     * page in the current block of {@code pageLimit} page numbers (and
+     * whether a next block exists) -- cost depends on block position, not
+     * on total table size.
+     */
+    public ArticlePageResponse readAll(Long boardId, Long page, Long pageSize, Long pageLimit) {
+        long blockIndex = (page - 1) / pageLimit;
+        long limit = (blockIndex + 1) * pageSize * pageLimit + 1;
 
-        List<ArticleResponse> articles = articleIds.isEmpty()
+        List<Long> boundedIds = articleRepository.findIds(boardId, PageRequest.of(0, (int) limit));
+        long available = boundedIds.size();
+
+        boolean hasNext = available == limit;
+        long lastPage = hasNext ? (blockIndex + 1) * pageLimit : ceilDiv(available, pageSize);
+
+        long start = (page - 1) * pageSize;
+        List<Long> pageIds = start >= available
                 ? List.of()
-                : articleRepository.findAllByIds(articleIds).stream().map(ArticleResponse::from).toList();
+                : boundedIds.subList((int) start, (int) Math.min(start + pageSize, available));
 
-        boolean hasNext = !articles.isEmpty() && !articleRepository.findAllByCursor(
-                boardId, articles.get(articles.size() - 1).articleId(), PageRequest.of(0, 1)
-        ).isEmpty();
+        List<ArticleResponse> articles = pageIds.isEmpty()
+                ? List.of()
+                : articleRepository.findAllByIds(pageIds).stream().map(ArticleResponse::from).toList();
 
-        return new ArticlePageResponse(articles, page, pageSize, hasNext);
+        return new ArticlePageResponse(articles, page, pageSize, pageLimit, lastPage, hasNext);
+    }
+
+    private static long ceilDiv(long dividend, long divisor) {
+        return (dividend + divisor - 1) / divisor;
     }
 
     public ArticleInfiniteScrollResponse readAllInfiniteScroll(Long boardId, Long lastArticleId, Long pageSize) {
@@ -47,7 +65,7 @@ public class ArticleService {
         List<Article> pageArticles = hasNext ? found.subList(0, pageSize.intValue()) : found;
 
         List<ArticleResponse> articles = pageArticles.stream().map(ArticleResponse::from).toList();
-        Long nextCursor = articles.isEmpty() ? null : articles.get(articles.size() - 1).articleId();
+        Long nextCursor = articles.isEmpty() ? null : articles.getLast().articleId();
 
         return new ArticleInfiniteScrollResponse(articles, nextCursor, hasNext);
     }

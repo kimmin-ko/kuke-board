@@ -6,6 +6,8 @@ public record ArticlePageResponse(
         List<ArticleResponse> articles,
         long page,
         long pageSize,
+        long pageLimit,
+        long lastPage,
         boolean hasNext
 ) {
 }
