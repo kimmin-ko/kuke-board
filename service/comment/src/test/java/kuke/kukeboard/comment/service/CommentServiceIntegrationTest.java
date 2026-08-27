@@ -1,6 +1,7 @@
 package kuke.kukeboard.comment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 import java.util.List;
 
@@ -131,5 +132,51 @@ class CommentServiceIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(commentRepository.findById(1L)).isEmpty();
         assertThat(commentRepository.findById(2L)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("자식이 없는 루트 댓글을 삭제해도 (부모가 없으니) 별도 연쇄 삭제 확인 로직을 타지 않고 그냥 끝난다")
+    void deletingChildlessRootDoesNotTriggerParentCleanup() {
+        Comment root = commentFixture(1L, 1L, false);
+        commentRepository.save(root);
+
+        commentService.delete(1L);
+
+        assertThat(commentRepository.findById(1L)).isEmpty();
+    }
+
+    @Test
+    @DisplayName("마지막 답글이 삭제돼도, 부모가 삭제 표시 상태가 아니면 부모는 그대로 살아있다")
+    void lastChildRemovedButLiveParentIsNotCascadeDeleted() {
+        Comment root = commentFixture(1L, 1L, false);
+        Comment reply = commentFixture(2L, 1L, false);
+        commentRepository.saveAll(List.of(root, reply));
+
+        commentService.delete(2L);
+
+        Comment found = commentRepository.findById(1L).orElseThrow();
+        assertThat(found.getDeleted()).isFalse();
+    }
+
+    @Test
+    @DisplayName("삭제 표시된 부모라도, 다른 형제 답글이 남아있으면 연쇄 삭제되지 않는다")
+    void deletedParentWithRemainingSiblingIsNotCascadeDeleted() {
+        Comment root = commentFixture(1L, 1L, true);
+        Comment reply1 = commentFixture(2L, 1L, false);
+        Comment reply2 = commentFixture(3L, 1L, false);
+        commentRepository.saveAll(List.of(root, reply1, reply2));
+
+        commentService.delete(2L);
+
+        assertThat(commentRepository.findById(1L)).isPresent();
+        assertThat(commentRepository.findById(3L)).isPresent();
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 commentId를 조회하면 IllegalArgumentException이 발생한다")
+    void readNonExistentCommentThrows() {
+        assertThatIllegalArgumentException()
+                .isThrownBy(() -> commentService.read(999L))
+                .withMessageContaining("999");
     }
 }
