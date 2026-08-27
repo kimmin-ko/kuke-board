@@ -39,7 +39,7 @@ class PageLimitCalculatorTest {
     void calculateLastPageWhenNoData() {
         long lastPage = PageLimitCalculator.calculateLastPage(1, 30, 10, 0);
 
-        assertThat(lastPage).isEqualTo(0);
+        assertThat(lastPage).isZero();
     }
 
     @Test

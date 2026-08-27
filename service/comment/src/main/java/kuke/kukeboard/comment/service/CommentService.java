@@ -58,7 +58,7 @@ public class CommentService {
 
     private void deleteParentIfOrphanedAndDeleted(Long parentCommentId) {
         commentRepository.findById(parentCommentId).ifPresent(parent -> {
-            if (parent.getDeleted() && !hasChildren(parent)) {
+            if (Boolean.TRUE.equals(parent.getDeleted()) && !hasChildren(parent)) {
                 commentRepository.delete(parent);
             }
         });

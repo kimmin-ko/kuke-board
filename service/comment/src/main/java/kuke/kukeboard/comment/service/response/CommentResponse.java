@@ -18,7 +18,7 @@ public record CommentResponse(
     public static CommentResponse from(Comment comment) {
         return new CommentResponse(
                 comment.getCommentId(),
-                comment.getDeleted() ? DELETED_CONTENT : comment.getContent(),
+                Boolean.TRUE.equals(comment.getDeleted()) ? DELETED_CONTENT : comment.getContent(),
                 comment.getArticleId(),
                 comment.getParentCommentId(),
                 comment.getWriterId(),
