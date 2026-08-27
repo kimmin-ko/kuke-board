@@ -4,6 +4,11 @@ spring:
   threads:
     virtual:
       enabled: true
+  datasource:
+    url: jdbc:mysql://localhost:3306/comment
+    username: root
+    password: rootpass
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
   port: 9001
