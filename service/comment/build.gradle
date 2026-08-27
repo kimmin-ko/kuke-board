@@ -1,3 +1,7 @@
+plugins {
+    id 'info.solidsoft.pitest' version '1.19.0'
+}
+
 apply plugin: 'jacoco'
 
 dependencies {
@@ -13,6 +17,10 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-mysql'
     testImplementation 'com.navercorp.fixturemonkey:fixture-monkey:1.2.1'
+    testImplementation('org.pitest:pitest-junit5-plugin:1.2.3') {
+        exclude group: 'org.junit.platform', module: 'junit-platform-launcher'
+    }
+    testImplementation 'org.junit.platform:junit-platform-launcher:6.0.3'
 }
 
 jacocoTestReport {
@@ -21,4 +29,17 @@ jacocoTestReport {
         xml.required = true
         html.required = true
     }
+}
+
+pitest {
+    junit5PluginVersion = '1.2.3'
+    targetClasses = [
+            'kuke.kukeboard.comment.service.CommentService',
+            'kuke.kukeboard.comment.entity.Comment',
+            'kuke.kukeboard.comment.service.response.CommentResponse'
+    ]
+    targetTests = ['kuke.kukeboard.comment.*']
+    outputFormats = ['HTML']
+    timestampedReports = false
+    threads = 4
 }
