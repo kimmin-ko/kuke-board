@@ -1,7 +1,17 @@
+apply plugin: 'jacoco'
+
 bootJar {
     enabled = false
 }
 
 jar {
     enabled = true
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
 }

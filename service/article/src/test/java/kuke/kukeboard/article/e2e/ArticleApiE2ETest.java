@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,13 +12,15 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
+import kuke.kukeboard.article.AbstractIntegrationTest;
 import kuke.kukeboard.article.repository.ArticleRepository;
 import kuke.kukeboard.article.service.request.ArticleCreateRequest;
 import kuke.kukeboard.article.service.request.ArticleUpdateRequest;
 import kuke.kukeboard.article.service.response.ArticleResponse;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class ArticleApiE2ETest {
+@DisplayName("Article API E2E 테스트 (실제 HTTP, Testcontainers MySQL)")
+class ArticleApiE2ETest extends AbstractIntegrationTest {
 
     @LocalServerPort
     private int port;
@@ -43,6 +46,7 @@ class ArticleApiE2ETest {
     }
 
     @Test
+    @DisplayName("생성 -> 조회 -> 수정 -> 삭제 전체 흐름이 실제 HTTP 요청으로 정상 동작한다")
     void createReadUpdateDelete() {
         ArticleResponse created = client.post()
                 .uri("/v1/articles")
