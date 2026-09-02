@@ -9,3 +9,4 @@ create table comment (
 );
 
 create index idx_article_id_comment_id on comment (article_id, comment_id);
+create index idx_article_id_parent_comment_id_comment_id on comment (article_id, parent_comment_id, comment_id);
